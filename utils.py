@@ -462,6 +462,8 @@ def get_loaders(train_csv_path, test_csv_path):
         label_dir=config.LABEL_DIR,
         anchors=config.ANCHORS,
     )
+    print("train_dataset length: ", len(train_dataset))
+    print("test length: ", len(test_dataset))
     train_loader = DataLoader(
         dataset=train_dataset,
         batch_size=config.BATCH_SIZE,

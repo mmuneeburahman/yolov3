@@ -3,25 +3,25 @@ import cv2
 import torch
 
 from albumentations.pytorch import ToTensorV2
-from utils import seed_everything
+# from utils import seed_everything
 
 DATASET = 'PASCAL_VOC'
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 # seed_everything()  # If you want deterministic behavior
-NUM_WORKERS = 4
-BATCH_SIZE = 32
-IMAGE_SIZE = 416
+NUM_WORKERS = 0
+BATCH_SIZE = 16
+IMAGE_SIZE = 320
 NUM_CLASSES = 20
-LEARNING_RATE = 1e-5
-WEIGHT_DECAY = 1e-4
-NUM_EPOCHS = 100
-CONF_THRESHOLD = 0.05
+LEARNING_RATE = 2e-4
+WEIGHT_DECAY = 2e-4
+NUM_EPOCHS = 10
+CONF_THRESHOLD = 0.6
 MAP_IOU_THRESH = 0.5
 NMS_IOU_THRESH = 0.45
 S = [IMAGE_SIZE // 32, IMAGE_SIZE // 16, IMAGE_SIZE // 8]
 PIN_MEMORY = True
-LOAD_MODEL = True
-SAVE_MODEL = True
+LOAD_MODEL = False
+SAVE_MODEL = False
 CHECKPOINT_FILE = "checkpoint.pth.tar"
 IMG_DIR = DATASET + "/images/"
 LABEL_DIR = DATASET + "/labels/"
@@ -33,7 +33,7 @@ ANCHORS = [
 ]  # Note these have been rescaled to be between [0, 1]
 
 
-scale = 1.1
+scale = 1.2
 train_transforms = A.Compose(
     [
         A.LongestMaxSize(max_size=int(IMAGE_SIZE * scale)),
@@ -54,11 +54,11 @@ train_transforms = A.Compose(
             p=1.0,
         ),
         A.HorizontalFlip(p=0.5),
-        A.Blur(p=0.1),
-        A.CLAHE(p=0.1),
-        A.Posterize(p=0.1),
+        A.Blur(p=0.2),
+        A.CLAHE(p=0.2),
+        A.Posterize(p=0.2),
         A.ToGray(p=0.1),
-        A.ChannelShuffle(p=0.05),
+        A.ChannelShuffle(p=0.1),
         A.Normalize(mean=[0, 0, 0], std=[1, 1, 1], max_pixel_value=255,),
         ToTensorV2(),
     ],

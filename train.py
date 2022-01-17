@@ -26,9 +26,12 @@ torch.backends.cudnn.benchmark = True
 
 
 def train_fn(train_loader, model, optimizer, loss_fn, scaler, scaled_anchors):
+    # print("In train_fn")
     loop = tqdm(train_loader, leave=True)
     losses = []
+    # print("starting training loop")
     for batch_idx, (x, y) in enumerate(loop):
+        # print("loop started")
         x = x.to(config.DEVICE)
         y0, y1, y2 = (
             y[0].to(config.DEVICE),
@@ -37,7 +40,9 @@ def train_fn(train_loader, model, optimizer, loss_fn, scaler, scaled_anchors):
         )
 
         with torch.cuda.amp.autocast():
+            # print("starting forward pass!")
             out = model(x)
+            # print("forward pass done!")
             loss = (
                 loss_fn(out[0], y0, scaled_anchors[0])
                 + loss_fn(out[1], y1, scaled_anchors[1])
@@ -65,7 +70,7 @@ def main():
     scaler = torch.cuda.amp.GradScaler()
 
     train_loader, test_loader, train_eval_loader = get_loaders(
-        train_csv_path=config.DATASET + "/train.csv", test_csv_path=config.DATASET + "/test.csv"
+        train_csv_path=config.DATASET + "/100examples.csv", test_csv_path=config.DATASET + "/100examples.csv"
     )
 
     if config.LOAD_MODEL:
@@ -89,25 +94,25 @@ def main():
         #print("On Train Eval loader:")
         #print("On Train loader:")
         #check_class_accuracy(model, train_loader, threshold=config.CONF_THRESHOLD)
-
-        if epoch > 0 and epoch % 3 == 0:
-            check_class_accuracy(model, test_loader, threshold=config.CONF_THRESHOLD)
-            pred_boxes, true_boxes = get_evaluation_bboxes(
-                test_loader,
-                model,
-                iou_threshold=config.NMS_IOU_THRESH,
-                anchors=config.ANCHORS,
-                threshold=config.CONF_THRESHOLD,
-            )
-            mapval = mean_average_precision(
-                pred_boxes,
-                true_boxes,
-                iou_threshold=config.MAP_IOU_THRESH,
-                box_format="midpoint",
-                num_classes=config.NUM_CLASSES,
-            )
-            print(f"MAP: {mapval.item()}")
-            model.train()
+        # print("nothing")
+        # if epoch > 0 and epoch % 3 == 0:
+        check_class_accuracy(model, test_loader, threshold=config.CONF_THRESHOLD)
+        pred_boxes, true_boxes = get_evaluation_bboxes(
+            test_loader,
+            model,
+            iou_threshold=config.NMS_IOU_THRESH,
+            anchors=config.ANCHORS,
+            threshold=config.CONF_THRESHOLD,
+        )
+        mapval = mean_average_precision(
+            pred_boxes,
+            true_boxes,
+            iou_threshold=config.MAP_IOU_THRESH,
+            box_format="midpoint",
+            num_classes=config.NUM_CLASSES,
+        )
+        print(f"MAP: {mapval.item()}")
+        model.train()
 
 
 if __name__ == "__main__":
